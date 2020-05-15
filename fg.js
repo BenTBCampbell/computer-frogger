@@ -1,3 +1,16 @@
+/**
+ * LINES:
+ * WON  
+ * 6        0
+ * 5        30
+ * 4        100
+ * REST     170
+ * 3        220
+ * 2        260
+ * 1        330
+ * START    440
+ */
+
 $(function() {
     var backgroundAnim = new gf.animation({
         url : "images/back.png"
@@ -11,17 +24,22 @@ $(function() {
     var playerAnim = new gf.animation({
         url : "images/player.png"
     });
+    var keys = {
+        up:false,
+        left:false,
+        right:false
+    }
 
     var initialize = function() {
         $("#mygame").append("<div id='container' style='display: none; width: 640px; height: 480px;'>");
-        gf.addSprite("container","background",{width: 640, height: 480, y: 10, x: 10});
-        gf.addSprite("container","packets1",{width: 640, height: 40, y: 410, x: 10});
-        gf.addSprite("container","packets2",{width: 640, height: 40, y: 340, x: 10});
-        gf.addSprite("container","packets3",{width: 640, height: 40, y: 270, x: 10});
-        gf.addSprite("container","bugs1",{width: 640, height: 60, y: 180, x: 10});
-        gf.addSprite("container","bugs2",{width: 640, height: 60, y: 110, x: 10});
-        gf.addSprite("container","bugs3",{width: 640, height: 60, y: 40, x: 10});
-        gf.addSprite("container","player",{width: 40, height: 40, y: 450, x: 270});
+        gf.addSprite("container","background",{width: 640, height: 480, y: 0, x: 0});
+        gf.addSprite("container","packets1",{width: 640, height: 40, y: 400, x: 0});
+        gf.addSprite("container","packets2",{width: 640, height: 40, y: 330, x: 0});
+        gf.addSprite("container","packets3",{width: 640, height: 40, y: 260, x: 0});
+        gf.addSprite("container","bugs1",{width: 640, height: 60, y: 170, x: 0});
+        gf.addSprite("container","bugs2",{width: 640, height: 60, y: 100, x: 0});
+        gf.addSprite("container","bugs3",{width: 640, height: 60, y: 30, x: 0});
+        gf.addSprite("container","player",{width: 40, height: 40, y: 440, x: 300});
 
         gf.setAnimation("background", backgroundAnim);
         gf.setAnimation("player", playerAnim);
@@ -35,6 +53,7 @@ $(function() {
         $("#startButton").remove();
         $("#container").append("<div id='lifes' style='position: relative; color: #FFF;'>life: 3</div>").css("display", "block");
         setInterval(gameLoop, 100);
+        gf.autoScaleToWindow($("#mygame"));
     };
     
     var screenWidth = 640;
@@ -95,24 +114,97 @@ $(function() {
                 break;
         }
         if(gameState !== "WON" && gameState !== "GAMEOVER"){
-        if(gf.keyboard[37]){ //left
-            newPos -= 5;
-        }
-        if(gf.keyboard[39]){ //right
-            newPos += 5;
-        }
-        if(newPos > screenWidth || newPos < -40){
-                kill();
-        } else {
-            if(!detectSafe(gameState)){
-                kill();
+            if(keys.left){
+                newPos -= 5;
             }
-            gf.x("player", newPos);
-        }
+            if(keys.right){
+                newPos += 5;
+            }
+            if(newPos > screenWidth || newPos < -40){
+                    kill();
+            } else {
+                if(!detectSafe(gameState)){
+                    kill();
+                }
+                gf.x("player", newPos);
+            }
+
+            if( !$("#player").is(':animated') && keys.up) {
+                console.log("moving up")
+                switch(gameState){
+                    case "START":
+                        $("#player").animate({top: 400},function(){
+                            if(detectSafe("LINE1")){
+                                gameState = "LINE1";
+                            } else {
+                                kill();
+                            }
+                        });
+                        break;
+                    case "LINE1":
+                        $("#player").animate({top: 330},function(){
+                            if(detectSafe("LINE2")){
+                                gameState = "LINE2";
+                            } else {
+                                kill();
+                            }
+                        });
+                        break;
+                    case "LINE2":
+                        $("#player").animate({top: 260},function(){
+                            if(detectSafe("LINE3")){
+                                gameState = "LINE3";
+                            } else {
+                                kill();
+                            }
+                        });
+                        break;
+                    case "LINE3":
+                        $("#player").animate({top: 220},function(){
+                            gameState = "REST";
+                        });
+                        break;
+                    case "REST":
+                        $("#player").animate({top: 180},function(){
+                            if(detectSafe("LINE4")){
+                                gameState = "LINE4";
+                            } else {
+                                kill();
+                            }
+                        });
+                        break;
+                    case "LINE4":
+                        $("#player").animate({top: 110},function(){
+                            if(detectSafe("LINE5")){
+                                gameState = "LINE5";
+                            } else {
+                                kill();
+                            }
+                        });
+                        break;
+                    case "LINE5":
+                        $("#player").animate({top: 40},function(){
+                            if(detectSafe("LINE6")){
+                                gameState = "LINE6";
+                            } else {
+                                kill();
+                            }
+                        });
+                        break;
+                    case "LINE6":
+                        $("#player").animate({top: 0},function(){
+                            gameState = "WON";
+                            $("#lifes").html("You won!");
+                        });
+                        break;
+                }
+            }
         }
     };
+    /**
         $(document).keydown(function(e){
         if(gameState !== "WON" && gameState !== "GAMEOVER"){
+            console.log("keydown:" + e.keyCode)
             switch(e.keyCode){
                 case 38: // jump
                     switch(gameState){
@@ -185,6 +277,17 @@ $(function() {
             }
         }
     });
+    */
+   $(document).keydown(function(e){
+       if (e.key === "ArrowRight") { keys.right = true };
+       if (e.key === "ArrowLeft") { keys.left = true };
+       if (e.key === "ArrowUp") { keys.up = true };
+   });
+   $(document).keyup(function(e){
+       if (e.key === "ArrowRight") { keys.right = false };
+       if (e.key === "ArrowLeft") { keys.left = false };
+       if (e.key === "ArrowUp") { keys.up = false };
+   });
     var detectSafe = function(state){
         switch(state){
             case "LINE1":
@@ -246,12 +349,13 @@ $(function() {
     };
     var life = 3;
     var kill = function (){
+        $("#player").stop(true).animate
         life--;
         if(life <= 0) {
             gameState = "GAMEOVER";
             $("#lifes").html("Game Over!");
-            gf.x("player", 270);
-                    gf.y("player", 450);
+            gf.x("player", 300);
+                    gf.y("player", 440);
         } else {
             $("#lifes").html("life: "+life);
             switch(gameState){
@@ -259,16 +363,16 @@ $(function() {
                 case "LINE1":
                 case "LINE2":
                 case "LINE3":
-                    gf.x("player", 270);
-                    gf.y("player", 450);
+                    gf.x("player", 300);
+                    gf.y("player", 440);
                     gameState = "START";
                     break;
                 case "REST":
                 case "LINE4":
                 case "LINE5":
                 case "LINE6":
-                    gf.x("player", 270);
-                    gf.y("player", 230);
+                    gf.x("player", 300);
+                    gf.y("player", 220);
                     gameState = "REST";
                     break;
             }
